@@ -49,8 +49,15 @@ func main() {
 		/* get links to the images */
 		lpat1 := regexp.MustCompile(`i\.4cdn\.org/[a-z]+/[0-9]*\.(png|jpg|gif|webm)`)
 		lpat2 := regexp.MustCompile(`is2\.4chan\.org/[a-z]+/[0-9]*\.(png|jpg|gif|webm)`)
-		imageurls := lpat1.FindAllString(string(resp.Data), -1)
-		imageurls = append(imageurlstmp1, lpat2.FindAllString(string(resp.Data), -1))
+		imageurls1 := lpat1.FindAllString(string(resp.Data), -1)
+		imageurls2 := lpat2.FindAllString(string(resp.Data), -1)
+		imageurls1 = append(imageurls1, imageurls2...)
+
+		/* remove duplicate links caused by thumbnails */
+		imagemap := make(map[string]bool)
+		for _, item := range imageurls1 { if _, ok := imagemap[item]; !ok { imagemap[item] = true }}
+      		var imageurls []string
+      		for item, _ := range imagemap { imageurls = append(imageurls, item) }
 
 		/* directory stuff */
 		if len(os.Args) > 2 { if _, err := os.Stat(os.Args[2]); err != nil {

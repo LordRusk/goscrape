@@ -10,7 +10,7 @@ run `goscrape` with the first argument being the link to the thread. Put in quot
 ## ToDo
 I need to change the way I download the images from using `net/http` to using `github.com/monaco-io/request`.
 
-## FAQ - Frequently Questioned Answers
+## FQA - Frequently Questioned Answers
 + Why do you use `github.com/monaco-io/request` as the request library and not `net/http`?
 Because `/net/http` doesn't give me the information I need from 4chan.
 
