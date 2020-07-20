@@ -32,9 +32,6 @@ func main() {
 		/* get url */
 		url := urls[i]
 
-		/* tell them what is downloading */
-		fmt.Println("Downloading", url)
-
 		/* grab page info */
 		client := request.Client {
 			URL: url,
@@ -70,6 +67,9 @@ func main() {
 			os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm)
 			os.Chdir(purl[3]+"/"+purl[5])
 		}
+
+		/* tell them what is downloading */
+		fmt.Println("Downloading", url)
 
 		/* download all the images */
 		for i := 0; i < len(imageurls); i++ {
