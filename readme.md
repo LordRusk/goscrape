@@ -17,3 +17,6 @@ I need to change the way I download the images from using `net/http` to using `g
 + Why do you use `github.com/monaco-io/request` as the request library and not `net/http`?
 
 Because `/net/http` doesn't give me the information I need from 4chan.
+
+### License
+Goscrape is in the public domain.
