@@ -1,35 +1,49 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"io"
+	"fmt"
 	"regexp"
 	"strings"
 	"net/http"
-	"io"
 
 	"github.com/monaco-io/request"
 )
 
+func download(imageurls []string, urlnum int, c chan int) {
+	pimageurl := strings.Split(imageurls[urlnum], "/") /* looks like [ i.4cdn.org g 244211] */
+	filename := pimageurl[2]
+
+	response, err := http.Get("https://"+imageurls[urlnum])
+	if err != nil { fmt.Println("Error downloading", filename) }
+	defer response.Body.Close()
+
+	file, err := os.Create(filename)
+	if err != nil { fmt.Println("Error downloading", filename) }
+	defer file.Close()
+
+	io.Copy(file, response.Body)
+
+	c <- urlnum
+}
+
 func main() {
-	/* check if there is a url given */
 	if len(os.Args) < 2 {
 		fmt.Printf("Error! No url(s) specified!\n\nFirst arg: Url(s) *must be in quotes if multiple urls*\nSecond arg: Custom download directory\n")
 		os.Exit(0)
 	}
 
-	/* get urls from args */
 	urls := strings.Split(os.Args[1], " ")
 
-	/* save current directory */
 	origdir, _ := os.Getwd()
+
+	dlc := make(chan int)
 
 	/* loop through all urls */
 	for i := 0; i < len(urls); i++ {
-		/* get back to original directory */
 		os.Chdir(origdir)
 
-		/* get url */
 		url := urls[i]
 
 		/* grab page info */
@@ -52,47 +66,38 @@ func main() {
 
 		/* remove duplicate links caused by thumbnails */
 		imagemap := make(map[string]bool)
-		for _, item := range imageurls1 { if _, ok := imagemap[item]; !ok { imagemap[item] = true }}
+		for _, item := range imageurls1 {
+			if _, ok := imagemap[item]; !ok {
+				imagemap[item] = true
+			}
+		}
       		var imageurls []string
       		for item, _ := range imagemap { imageurls = append(imageurls, item) }
 
 		/* directory stuff */
-		if len(os.Args) > 2 { if _, err := os.Stat(os.Args[2]); err != nil {
-			fmt.Println("Error! Directory does not exist!")
-			os.Exit(0)
+		if len(os.Args) > 2 {
+			if err := os.Chdir(string(os.Args[2])+"/"); err != nil {
+				fmt.Println("Error! Directory does not exist!")
+				os.Exit(0)
+			}
 		} else {
-			os.Chdir(string(os.Args[2])+"/")
-		}} else {
 			purl := strings.Split(url, "/") /* url looks like [https:  4chan.org g 4532123] */
 			os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm)
 			os.Chdir(purl[3]+"/"+purl[5])
 		}
 
-		/* tell them what is downloading */
 		fmt.Println("Downloading", url)
 
 		/* download all the images */
 		for i := 0; i < len(imageurls); i++ {
-			/* parse link to get image name */
-			pimageurl := strings.Split(imageurls[i], "/") /* looks like [ i.4cdn.org g 244211] */
-			filename := pimageurl[2]
-
-			/* tell them what is downloading */
-			fmt.Println("Downloading", pimageurl[2]+"...", i+1, "of", len(imageurls))
-
-			/* Get the response bytes from the url */
-			response, err := http.Get("https://"+imageurls[i])
-			if err != nil { fmt.Println("Error downloading", filename) }
-			defer response.Body.Close()
-
-			/* Create a empty file */
-			file, err := os.Create(filename)
-			if err != nil { fmt.Println("Error downloading", filename) }
-			defer file.Close()
-
-			/* Write the bytes to the file */
-			_, err = io.Copy(file, response.Body)
+			go download(imageurls, i, dlc)
 		}
-	fmt.Printf("\n")
+
+		for i := 0; i < len(imageurls); i++ {
+			c := <- dlc
+			pimageurl := strings.Split(imageurls[c], "/") /* looks like [ i.4cdn.org g 244211] */
+			fmt.Println("Finished downloading", pimageurl[2])
+		}
 	}
+	close(dlc)
 }
