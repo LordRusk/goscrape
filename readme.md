@@ -8,7 +8,7 @@ Simple 4chan scraper written in go that supports multiple treads and custom down
 run `goscrape` with the first argument being the link to the thread. Put in quotes for multiple links. The second argument can be a custom downloads directory, if none is given it will download it to `board/postid/`.
 
 ## Features
-* Goscrape is upwards of 4x faster then other scrapers, goscrape does this by using go's concurrency to download multiple images at the same time, taking advantage of more bandwidth. You won't find download speeds anywhere else.
+* Goscrape is upwards of 4x faster then other scrapers, goscrape does this by using go's concurrency to download multiple images at the same time, taking advantage of more bandwidth. You won't find download speeds like this vanywhere else.
 * Goscrape is cross-platform, works everywhere that go does out of the box! (Plan9, etc, etc)
 
 ## Why?
