@@ -11,11 +11,11 @@ import (
 	"github.com/monaco-io/request"
 )
 
-func download(imageurls []string, urlnum int, c chan int) {
-	pimageurl := strings.Split(imageurls[urlnum], "/") /* looks like [ i.4cdn.org g 244211] */
-	filename := pimageurl[2]
+func download(imageUrls []string, urlNum int, c chan int) {
+	pimageUrl := strings.Split(imageUrls[urlNum], "/") /* looks like [ i.4cdn.org g 244211] */
+	filename := pimageUrl[2]
 
-	response, err := http.Get("https://"+imageurls[urlnum])
+	response, err := http.Get("https://"+imageUrls[urlNum])
 	if err != nil { fmt.Println("Error downloading", filename) }
 	defer response.Body.Close()
 
@@ -25,7 +25,7 @@ func download(imageurls []string, urlnum int, c chan int) {
 
 	io.Copy(file, response.Body)
 
-	c <- urlnum
+	c <- urlNum
 }
 
 func main() {
@@ -36,13 +36,13 @@ func main() {
 
 	urls := strings.Split(os.Args[1], " ")
 
-	origdir, _ := os.Getwd()
+	origDir, _ := os.Getwd()
 
 	dlc := make(chan int)
 
 	/* loop through all urls */
 	for i := 0; i < len(urls); i++ {
-		os.Chdir(origdir)
+		os.Chdir(origDir)
 
 		url := urls[i]
 
@@ -60,19 +60,19 @@ func main() {
 		/* get links to the images */
 		lpat1 := regexp.MustCompile(`i\.4cdn\.org/[a-z]+/[0-9]*\.(png|jpg|gif|webm)`)
 		lpat2 := regexp.MustCompile(`is2\.4chan\.org/[a-z]+/[0-9]*\.(png|jpg|gif|webm)`)
-		imageurls1 := lpat1.FindAllString(string(resp.Data), -1)
-		imageurls2 := lpat2.FindAllString(string(resp.Data), -1)
-		imageurls1 = append(imageurls1, imageurls2...)
+		imageUrls1 := lpat1.FindAllString(string(resp.Data), -1)
+		imageUrls2 := lpat2.FindAllString(string(resp.Data), -1)
+		imageUrls1 = append(imageUrls1, imageUrls2...)
 
 		/* remove duplicate links caused by thumbnails */
-		imagemap := make(map[string]bool)
-		for _, item := range imageurls1 {
-			if _, ok := imagemap[item]; !ok {
-				imagemap[item] = true
+		imageMap := make(map[string]bool)
+		for _, item := range imageUrls1 {
+			if _, ok := imageMap[item]; !ok {
+				imageMap[item] = true
 			}
 		}
-      		var imageurls []string
-      		for item, _ := range imagemap { imageurls = append(imageurls, item) }
+      		var imageUrls []string
+      		for item, _ := range imageMap { imageUrls = append(imageUrls, item) }
 
 		/* directory stuff */
 		if len(os.Args) > 2 {
@@ -89,14 +89,14 @@ func main() {
 		fmt.Println("Downloading", url)
 
 		/* download all the images */
-		for i := 0; i < len(imageurls); i++ {
-			go download(imageurls, i, dlc)
+		for i := 0; i < len(imageUrls); i++ {
+			go download(imageUrls, i, dlc)
 		}
 
-		for i := 0; i < len(imageurls); i++ {
+		for i := 0; i < len(imageUrls); i++ {
 			c := <- dlc
-			pimageurl := strings.Split(imageurls[c], "/") /* looks like [ i.4cdn.org g 244211] */
-			fmt.Println("Finished downloading", pimageurl[2])
+			pimageUrl := strings.Split(imageUrls[c], "/")
+			fmt.Println("Finished downloading", pimageUrl[2])
 		}
 	}
 	close(dlc)
