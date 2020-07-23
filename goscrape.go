@@ -53,7 +53,7 @@ func main() {
 		}
 		resp, err := client.Do()
 		if err != nil {
-			fmt.Println("Invalid URL!")
+			fmt.Println("Unable to reach", url + "!\nCheck your connection and make sure the url is correct.")
 			os.Exit(0)
 		}
 
