@@ -96,7 +96,7 @@ func main() {
 		for i := 0; i < len(imageUrls); i++ {
 			c := <- dlc
 			pimageUrl := strings.Split(imageUrls[c], "/")
-			fmt.Println("Finished downloading", pimageUrl[2])
+			fmt.Println("Finished downloading", pimageUrl[2], i+1, "of", len(imageUrls))
 		}
 	}
 	close(dlc)
