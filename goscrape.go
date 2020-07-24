@@ -77,8 +77,12 @@ func main() {
 		/* directory stuff */
 		if len(os.Args) > 2 {
 			if err := os.Chdir(string(os.Args[2])+"/"); err != nil {
-				fmt.Println("Error! Directory does not exist!")
-				os.Exit(0)
+				if err := os.MkdirAll(string(os.Args[2]+"/"), os.ModePerm); err != nil {
+					fmt.Println("Error! Cannot create custom directory! Check permissions!")
+					os.Exit(0)
+				} else {
+					os.Chdir(string(os.Args[2])+"/")
+				}
 			}
 		} else {
 			purl := strings.Split(url, "/") /* url looks like [https:  4chan.org g 4532123] */
