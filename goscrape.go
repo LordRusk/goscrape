@@ -11,7 +11,7 @@ import (
 	"github.com/monaco-io/request"
 )
 
-func download(imageUrls []string, urlNum int, c chan int) {
+func download(imageUrls []string, urlNum int, urlNumChan chan int) {
 	pimageUrl := strings.Split(imageUrls[urlNum], "/") /* looks like [ i.4cdn.org g 244211] */
 	filename := pimageUrl[2]
 
@@ -19,13 +19,19 @@ func download(imageUrls []string, urlNum int, c chan int) {
 	if err != nil { fmt.Println("Error downloading", filename) }
 	defer response.Body.Close()
 
+	if _, err := os.Stat(filename); err == nil {
+		fmt.Println(filename, "exists! Skipping...")
+		urlNumChan <- urlNum
+		return
+	}
+
 	file, err := os.Create(filename)
 	if err != nil { fmt.Println("Error downloading", filename) }
 	defer file.Close()
 
 	io.Copy(file, response.Body)
 
-	c <- urlNum
+	urlNumChan <- urlNum
 }
 
 func main() {
