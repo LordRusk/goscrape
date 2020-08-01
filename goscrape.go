@@ -15,15 +15,15 @@ func download(imageUrls []string, urlNum int, urlNumChan chan int) {
 	pimageUrl := strings.Split(imageUrls[urlNum], "/") /* looks like [ i.4cdn.org g 244211] */
 	filename := pimageUrl[2]
 
-	response, err := http.Get("https://"+imageUrls[urlNum])
-	if err != nil { fmt.Println("Error downloading", filename) }
-	defer response.Body.Close()
-
 	if _, err := os.Stat(filename); err == nil {
 		fmt.Println(filename, "exists! Skipping...")
 		urlNumChan <- urlNum
 		return
 	}
+
+	response, err := http.Get("https://"+imageUrls[urlNum])
+	if err != nil { fmt.Println("Error downloading", filename) }
+	defer response.Body.Close()
 
 	file, err := os.Create(filename)
 	if err != nil { fmt.Println("Error downloading", filename) }
