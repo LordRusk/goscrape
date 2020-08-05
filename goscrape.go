@@ -12,7 +12,7 @@ import (
 )
 
 func download(imageUrls []string, urlNum int, urlNumChan chan int) {
-	pimageUrl := strings.Split(imageUrls[urlNum], "/") /* looks like [ i.4cdn.org g 244211] */
+	pimageUrl := strings.Split(imageUrls[urlNum], "/") /* looks like [ i.4cdn.org g 244211.jpg] */
 	filename := pimageUrl[2]
 
 	if _, err := os.Stat(filename); err == nil {
@@ -22,11 +22,19 @@ func download(imageUrls []string, urlNum int, urlNumChan chan int) {
 	}
 
 	response, err := http.Get("https://"+imageUrls[urlNum])
-	if err != nil { fmt.Println("Error downloading", filename) }
+	if err != nil {
+		fmt.Println("Error downloading", filename)
+		urlNumChan <- urlNum
+		return
+	}
 	defer response.Body.Close()
 
 	file, err := os.Create(filename)
-	if err != nil { fmt.Println("Error downloading", filename) }
+	if err != nil {
+		fmt.Println("Error downloading", filename)
+		urlNumChan <- urlNum
+		return
+	}
 	defer file.Close()
 
 	io.Copy(file, response.Body)
@@ -104,8 +112,8 @@ func main() {
 		}
 
 		for i := 0; i < len(imageUrls); i++ {
-			c := <- dlc
-			pimageUrl := strings.Split(imageUrls[c], "/")
+			urlNum := <- dlc
+			pimageUrl := strings.Split(imageUrls[urlNum], "/")
 			fmt.Println("Finished downloading", pimageUrl[2], i+1, "of", len(imageUrls))
 		}
 	}
