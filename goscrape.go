@@ -104,7 +104,7 @@ func main() {
 			os.Chdir(purl[3]+"/"+purl[5])
 		}
 
-		fmt.Println("Downloading", url)
+		fmt.Println("Downloading", url, i+1, "of", len(urls))
 
 		/* download all the images */
 		for i := 0; i < len(imageUrls); i++ {
@@ -112,7 +112,7 @@ func main() {
 		}
 
 		for i := 0; i < len(imageUrls); i++ {
-			urlNum := <- dlc
+			urlNum := <-dlc
 			pimageUrl := strings.Split(imageUrls[urlNum], "/")
 			fmt.Println("Finished downloading", pimageUrl[2], i+1, "of", len(imageUrls))
 		}
