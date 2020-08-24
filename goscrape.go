@@ -55,10 +55,8 @@ func main() {
 	dlc := make(chan int)
 
 	/* loop through all urls */
-	for i := 0; i < len(urls); i++ {
+	for urlNum, url := range urls {
 		os.Chdir(origDir)
-
-		url := urls[i]
 
 		/* grab page info */
 		client := request.Client {
@@ -104,11 +102,11 @@ func main() {
 			os.Chdir(purl[3]+"/"+purl[5])
 		}
 
-		fmt.Println("Downloading", url, i+1, "of", len(urls))
+		fmt.Println("Downloading", url, urlNum+1, "of", len(urls))
 
 		/* download all the images */
-		for i := 0; i < len(imageUrls); i++ {
-			go download(imageUrls, i, dlc)
+		for urlNum, _ := range imageUrls {
+			go download(imageUrls, urlNum, dlc)
 		}
 
 		for i := 0; i < len(imageUrls); i++ {
