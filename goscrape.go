@@ -31,7 +31,8 @@ func download(imageUrls []string, urlNum int, urlNumChan chan int) {
 
 	/* Use a temp file name to avoid half downloaded
 	 * images if goscrape were to be killed then restarted
-	 * on the same thread(s).
+	 * on the same thread(s) caused by goscrape skipping
+	 * images that already exist.
 	 */
 	var tmpFilename strings.Builder
 	tmpFilename.WriteString(filename)
@@ -47,8 +48,7 @@ func download(imageUrls []string, urlNum int, urlNumChan chan int) {
 
 	io.Copy(file, response.Body)
 
-	err = os.Rename(tmpFilename.String(), filename)
-	if err != nil {
+	if err := os.Rename(tmpFilename.String(), filename); err != nil {
 		fmt.Println(err)
 	}
 

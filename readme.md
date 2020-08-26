@@ -14,9 +14,6 @@ run `goscrape` with the first argument being the link to the thread. Put in quot
 ## Why?
 Because *all* 4chan scrapers I've seen and used were written in python, I dislike python and wanted to make something in GO.
 
-## ToDo
-I need to change the way I download the images from using `net/http` to using `github.com/monaco-io/request`.
-
 ## FQA - Frequently Questioned Answers
 + Why do you use `github.com/monaco-io/request` as the request library and not `net/http`?
 
