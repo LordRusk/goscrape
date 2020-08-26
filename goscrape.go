@@ -29,7 +29,15 @@ func download(imageUrls []string, urlNum int, urlNumChan chan int) {
 	}
 	defer response.Body.Close()
 
-	file, err := os.Create(filename)
+	/* Use a temp file name to avoid half downloaded
+	 * images if goscrape were to be killed then restarted
+	 * on the same thread(s).
+	 */
+	var tmpFilename strings.Builder
+	tmpFilename.WriteString(filename)
+	tmpFilename.WriteString(".part")
+
+	file, err := os.Create(tmpFilename.String())
 	if err != nil {
 		fmt.Println("Error downloading", filename)
 		urlNumChan <- urlNum
@@ -39,7 +47,13 @@ func download(imageUrls []string, urlNum int, urlNumChan chan int) {
 
 	io.Copy(file, response.Body)
 
+	err = os.Rename(tmpFilename.String(), filename)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	urlNumChan <- urlNum
+	return
 }
 
 func main() {
@@ -98,7 +112,10 @@ func main() {
 			}
 		} else {
 			purl := strings.Split(url, "/") /* url looks like [https:  4chan.org g 4532123] */
-			os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm)
+			if err := os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm); err != nil {
+				fmt.Println("Error! Cannot create directory! Check permissions")
+				os.Exit(0)
+			}
 			os.Chdir(purl[3]+"/"+purl[5])
 		}
 
