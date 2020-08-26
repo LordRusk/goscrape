@@ -5,26 +5,51 @@ import (
 	"io"
 	"fmt"
 	"regexp"
+	"errors"
 	"strings"
 	"net/http"
 
 	"github.com/monaco-io/request"
 )
 
-func download(imageUrls []string, urlNum int, urlNumChan chan int) {
+type finishState struct {
+	urlNum int
+	filename string
+	err error
+}
+
+func download(imageUrls []string, urlNum int, finishStateChan chan finishState) {
 	pimageUrl := strings.Split(imageUrls[urlNum], "/") /* looks like [ i.4cdn.org g 244211.jpg] */
 	filename := pimageUrl[2]
 
 	if _, err := os.Stat(filename); err == nil {
-		fmt.Println(filename, "exists! Skipping...")
-		urlNumChan <- urlNum
+		var err strings.Builder
+		err.WriteString(filename)
+		err.WriteString(" exists! Skipping...")
+
+		fs := finishState {
+			urlNum: urlNum,
+			filename: filename,
+			err: errors.New(err.String()),
+		}
+
+		finishStateChan <- fs
 		return
 	}
 
 	response, err := http.Get("https://"+imageUrls[urlNum])
 	if err != nil {
-		fmt.Println("Error downloading", filename)
-		urlNumChan <- urlNum
+		var err strings.Builder
+		err.WriteString("Error downloading ")
+		err.WriteString(filename)
+
+		fs := finishState {
+			urlNum: urlNum,
+			filename: filename,
+			err: errors.New(err.String()),
+		}
+
+		finishStateChan <- fs
 		return
 	}
 	defer response.Body.Close()
@@ -40,8 +65,16 @@ func download(imageUrls []string, urlNum int, urlNumChan chan int) {
 
 	file, err := os.Create(tmpFilename.String())
 	if err != nil {
-		fmt.Println("Error downloading", filename)
-		urlNumChan <- urlNum
+		var err strings.Builder
+		err.WriteString("Error downloading ")
+		err.WriteString(filename)
+
+		fs := finishState {
+			urlNum: urlNum,
+			filename: filename,
+			err: errors.New(err.String()),
+		}
+		finishStateChan <- fs
 		return
 	}
 	defer file.Close()
@@ -52,7 +85,13 @@ func download(imageUrls []string, urlNum int, urlNumChan chan int) {
 		fmt.Println(err)
 	}
 
-	urlNumChan <- urlNum
+	fs := finishState {
+		urlNum: urlNum,
+		filename: filename,
+		err: nil,
+	}
+
+	finishStateChan <- fs
 	return
 }
 
@@ -66,7 +105,7 @@ func main() {
 
 	origDir, _ := os.Getwd()
 
-	dlc := make(chan int)
+	dlc := make(chan finishState)
 
 	/* loop through all urls */
 	for urlNum, url := range urls {
@@ -127,9 +166,12 @@ func main() {
 		}
 
 		for i := 0; i < len(imageUrls); i++ {
-			urlNum := <-dlc
-			pimageUrl := strings.Split(imageUrls[urlNum], "/")
-			fmt.Println("Finished downloading", pimageUrl[2], i+1, "of", len(imageUrls))
+			fs := <-dlc
+			if fs.err != nil {
+				fmt.Println(err, fs.filename, i+1, "of", len(imageUrls))
+				return
+			}
+			fmt.Println("Finished downloading", fs.filename, i+1, "of", len(imageUrls))
 		}
 	}
 	close(dlc)
