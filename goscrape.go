@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 	"io"
-	"fmt"
+	"log"
 	"regexp"
 	"errors"
 	"strings"
@@ -82,7 +82,7 @@ func download(imageUrls []string, urlNum int, finishStateChan chan finishState) 
 	io.Copy(file, response.Body)
 
 	if err := os.Rename(tmpFilename.String(), filename); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	fs := finishState {
@@ -97,7 +97,7 @@ func download(imageUrls []string, urlNum int, finishStateChan chan finishState) 
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Printf("Error! No url(s) specified!\n\nFirst arg: Url(s) *must be in quotes if multiple urls*\nSecond arg: Custom download directory\n")
+		log.Printf("Error! No url(s) specified!\n\nFirst arg: Url(s) *must be in quotes if multiple urls*\nSecond arg: Custom download directory\n")
 		os.Exit(0)
 	}
 
@@ -118,7 +118,7 @@ func main() {
 		}
 		resp, err := client.Do()
 		if err != nil {
-			fmt.Println("Unable to reach", url + "!\nCheck your connection and make sure the url is correct.")
+			log.Println("Unable to reach", url + "!\nCheck your connection and make sure the url is correct.")
 			os.Exit(0)
 		}
 
@@ -143,7 +143,7 @@ func main() {
 		if len(os.Args) > 2 {
 			if err := os.Chdir(string(os.Args[2])+"/"); err != nil {
 				if err := os.MkdirAll(string(os.Args[2]+"/"), os.ModePerm); err != nil {
-					fmt.Println("Error! Cannot create custom directory! Check permissions!")
+					log.Println("Error! Cannot create custom directory! Check permissions!")
 					os.Exit(0)
 				} else {
 					os.Chdir(string(os.Args[2])+"/")
@@ -152,13 +152,13 @@ func main() {
 		} else {
 			purl := strings.Split(url, "/") /* url looks like [https:  4chan.org g 4532123] */
 			if err := os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm); err != nil {
-				fmt.Println("Error! Cannot create directory! Check permissions")
+				log.Println("Error! Cannot create directory! Check permissions")
 				os.Exit(0)
 			}
 			os.Chdir(purl[3]+"/"+purl[5])
 		}
 
-		fmt.Println("Downloading", url, urlNum+1, "of", len(urls))
+		log.Println("Downloading", url, urlNum+1, "of", len(urls))
 
 		/* download all the images */
 		for urlNum, _ := range imageUrls {
@@ -168,10 +168,10 @@ func main() {
 		for i := 0; i < len(imageUrls); i++ {
 			fs := <-dlc
 			if fs.err != nil {
-				fmt.Println(fs.err, fs.filename, i+1, "of", len(imageUrls))
-				return
+				log.Println(fs.err, fs.filename, i+1, "of", len(imageUrls))
+			} else {
+				log.Println("Finished downloading", fs.filename, i+1, "of", len(imageUrls))
 			}
-			fmt.Println("Finished downloading", fs.filename, i+1, "of", len(imageUrls))
 		}
 	}
 	close(dlc)
