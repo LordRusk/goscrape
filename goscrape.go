@@ -168,7 +168,7 @@ func main() {
 		for i := 0; i < len(imageUrls); i++ {
 			fs := <-dlc
 			if fs.err != nil {
-				fmt.Println(err, fs.filename, i+1, "of", len(imageUrls))
+				fmt.Println(fs.err, fs.filename, i+1, "of", len(imageUrls))
 				return
 			}
 			fmt.Println("Finished downloading", fs.filename, i+1, "of", len(imageUrls))
