@@ -13,7 +13,6 @@ import (
 )
 
 type finishState struct {
-	urlNum int
 	filename string
 	err error
 }
@@ -28,7 +27,6 @@ func download(imageUrls []string, urlNum int, finishStateChan chan finishState) 
 		err.WriteString(" exists! Skipping...")
 
 		fs := finishState {
-			urlNum: urlNum,
 			filename: filename,
 			err: errors.New(err.String()),
 		}
@@ -44,7 +42,6 @@ func download(imageUrls []string, urlNum int, finishStateChan chan finishState) 
 		err.WriteString(filename)
 
 		fs := finishState {
-			urlNum: urlNum,
 			filename: filename,
 			err: errors.New(err.String()),
 		}
@@ -70,7 +67,6 @@ func download(imageUrls []string, urlNum int, finishStateChan chan finishState) 
 		err.WriteString(filename)
 
 		fs := finishState {
-			urlNum: urlNum,
 			filename: filename,
 			err: errors.New(err.String()),
 		}
@@ -86,7 +82,6 @@ func download(imageUrls []string, urlNum int, finishStateChan chan finishState) 
 	}
 
 	fs := finishState {
-		urlNum: urlNum,
 		filename: filename,
 		err: nil,
 	}
