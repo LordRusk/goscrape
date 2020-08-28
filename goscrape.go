@@ -49,7 +49,6 @@ func download(imageUrls []string, urlNum int, finishStateChan chan finishState) 
 		finishStateChan <- fs
 		return
 	}
-	defer response.Body.Close()
 
 	/* Use a temp file name to avoid half downloaded
 	 * images if goscrape were to be killed then restarted
@@ -73,7 +72,6 @@ func download(imageUrls []string, urlNum int, finishStateChan chan finishState) 
 		finishStateChan <- fs
 		return
 	}
-	defer file.Close()
 
 	io.Copy(file, response.Body)
 
@@ -163,7 +161,7 @@ func main() {
 		for i := 0; i < len(imageUrls); i++ {
 			fs := <-dlc
 			if fs.err != nil {
-				log.Println(fs.err, fs.filename, i+1, "of", len(imageUrls))
+				log.Println(fs.err, i+1, "of", len(imageUrls))
 			} else {
 				log.Println("Finished downloading", fs.filename, i+1, "of", len(imageUrls))
 			}
