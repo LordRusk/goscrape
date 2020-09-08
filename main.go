@@ -42,7 +42,7 @@ func download(image godesu.Image, finishStateChan chan finishState) {
 		err.WriteString("'")
 		err.WriteString(" exists! Skipping...")
 
-		fs := finishState { err: errors.New(err.String()) }
+		fs.err = errors.New(err.String()) }
 		finishStateChan <- fs
 		return
 	}
@@ -60,11 +60,6 @@ func download(image godesu.Image, finishStateChan chan finishState) {
 		return
 	}
 
-	/* Use a temp file name to avoid half downloaded
-	 * images if goscrape were to be killed then restarted
-	 * on the same Thread(s) caused by goscrape skipping
-	 * images that already exist.
-	 */
 	var tmpFilename strings.Builder
 	tmpFilename.WriteString(filename)
 	tmpFilename.WriteString(".part")
