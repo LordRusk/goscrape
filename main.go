@@ -125,12 +125,12 @@ func main() {
 
 		/* directory stuff */
 		if *customDownloadDir != "" {
-			if err := os.Chdir(string(*customDownloadDir)+"/"); err != nil {
-				if err := os.MkdirAll(string(*customDownloadDir)+"/", os.ModePerm); err != nil {
+			if err := os.Chdir(*customDownloadDir+"/"); err != nil {
+				if err := os.MkdirAll(*customDownloadDir+"/", os.ModePerm); err != nil {
 					log.Fatal(errors.New("Error! Cannot create directory! Check permissions"))
 					os.Exit(1)
 				} else {
-					os.Chdir(string(*customDownloadDir)+"/")
+					os.Chdir(*customDownloadDir+"/")
 				}
 			}
 		} else {
