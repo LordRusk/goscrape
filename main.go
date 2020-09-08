@@ -9,28 +9,40 @@ import (
 	"strconv"
 	"net/http"
 
+	"github.com/pborman/getopt"
 	"github.com/mtarnawa/godesu"
 )
 
 type finishState struct {
-	image godesu.Image
+	filename string
 	err error
 }
 
+var (
+	/* opts */
+	help = getopt.BoolLong("help", 0, "Help")
+	useOrigFilename = getopt.BoolLong("useOrigFilename", 'o', "Download with the original filename")
+	customDownloadDir = getopt.StringLong("customDownloadDir", 'c', "", "Set a custom directory for the images to download to")
+)
+
 func download(image godesu.Image, finishStateChan chan finishState) {
 	var filename string
-	filename = (image.Filename+image.Extension)
+	if *useOrigFilename {
+		filename = image.OriginalFilename
+	} else {
+		filename = (image.Filename+image.Extension)
+	}
+
+	fs := finishState { filename: filename }
 
 	if _, err := os.Stat(filename); err == nil {
 		var err strings.Builder
+		err.WriteString("'")
 		err.WriteString(filename)
+		err.WriteString("'")
 		err.WriteString(" exists! Skipping...")
 
-		fs := finishState {
-			image: image,
-			err: errors.New(err.String()),
-		}
-
+		fs := finishState { err: errors.New(err.String()) }
 		finishStateChan <- fs
 		return
 	}
@@ -39,13 +51,11 @@ func download(image godesu.Image, finishStateChan chan finishState) {
 	if err != nil {
 		var err strings.Builder
 		err.WriteString("Error downloading ")
+		err.WriteString("'")
 		err.WriteString(filename)
+		err.WriteString("'")
 
-		fs := finishState {
-			image: image,
-			err: errors.New(err.String()),
-		}
-
+		fs := finishState { err: errors.New(err.String()) }
 		finishStateChan <- fs
 		return
 	}
@@ -63,12 +73,11 @@ func download(image godesu.Image, finishStateChan chan finishState) {
 	if err != nil {
 		var err strings.Builder
 		err.WriteString("Error downloading ")
+		err.WriteString("'")
 		err.WriteString(filename)
+		err.WriteString("'")
 
-		fs := finishState {
-			image: image,
-			err: errors.New(err.String()),
-		}
+		fs.err = errors.New(err.String())
 		finishStateChan <- fs
 		return
 	}
@@ -79,22 +88,23 @@ func download(image godesu.Image, finishStateChan chan finishState) {
 		log.Println(err)
 	}
 
-	fs := finishState {
-		image: image,
-		err: nil,
-	}
-
+	fs.err = nil
 	finishStateChan <- fs
 	return
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		log.Printf("Error! No url(s) specified!\n\nFirst arg: Url(s) *must be in quotes if multiple urls*\nSecond arg: Custom download directory\n")
+	getopt.Parse()
+	if *help {
+		getopt.Usage()
+		os.Exit(0)
+	}
+	args := getopt.Args()
+	if len(args) == 0 {
+		getopt.Usage()
 		os.Exit(1)
 	}
-
-	urls := strings.Split(os.Args[1], " ")
+	urls := strings.Split(args[0], " ")
 	origDir, _ := os.Getwd()
 	dlc := make(chan finishState)
 	Gochan := godesu.New()
@@ -109,22 +119,23 @@ func main() {
 		err, Thread := Gochan.Board(purl[3]).GetThread(ThreadNum)
 		if err != nil {
 			log.Fatal(errors.New("Error! Could not fetch Thread!"))
+			os.Exit(1)
 		}
 		images := Thread.Images()
 
 		/* directory stuff */
-		if len(os.Args) > 2 {
-			if err := os.Chdir(string(os.Args[2])+"/"); err != nil {
-				if err := os.MkdirAll(string(os.Args[2]+"/"), os.ModePerm); err != nil {
-					log.Println("Error! Cannot create custom directory! Check permissions!")
+		if *customDownloadDir != "" {
+			if err := os.Chdir(string(*customDownloadDir)+"/"); err != nil {
+				if err := os.MkdirAll(string(*customDownloadDir)+"/", os.ModePerm); err != nil {
+					log.Fatal(errors.New("Error! Cannot create directory! Check permissions"))
 					os.Exit(1)
 				} else {
-					os.Chdir(string(os.Args[2])+"/")
+					os.Chdir(string(*customDownloadDir)+"/")
 				}
 			}
 		} else {
 			if err := os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm); err != nil {
-				log.Println("Error! Cannot create directory! Check permissions")
+				log.Fatal(errors.New("Error! Cannot create directory! Check permissions"))
 				os.Exit(1)
 			}
 			os.Chdir(purl[3]+"/"+purl[5])
@@ -142,7 +153,7 @@ func main() {
 			if fs.err != nil {
 				log.Println(fs.err, i+1, "of", len(images))
 			} else {
-				log.Println("Finished downloading", fs.image.Filename+fs.image.Extension, i+1, "of", len(images))
+				log.Println("Finished downloading", "'"+fs.filename+"'", i+1, "of", len(images))
 			}
 		}
 	}
