@@ -1,5 +1,5 @@
-# Simple 4chan image scraper written in GO
-Simple 4chan scraper written in go that supports multiple treads and custom download directories.
+# Simple and efficient 4chan media scraper written in GO
+Goscrape is a very simple and efficient 4chan media scraper written in go that supports multiple treads, custom download directories, and more!
 
 ## How to install
 `go get -u github.com/lordrusk/goscrape`
