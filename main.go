@@ -42,7 +42,7 @@ func download(image godesu.Image, finishStateChan chan finishState) {
 		err.WriteString("'")
 		err.WriteString(" exists! Skipping...")
 
-		fs.err = errors.New(err.String()) }
+		fs.err = errors.New(err.String())
 		finishStateChan <- fs
 		return
 	}
@@ -55,7 +55,7 @@ func download(image godesu.Image, finishStateChan chan finishState) {
 		err.WriteString(filename)
 		err.WriteString("'")
 
-		fs := finishState { err: errors.New(err.String()) }
+		fs.err = errors.New(err.String())
 		finishStateChan <- fs
 		return
 	}
