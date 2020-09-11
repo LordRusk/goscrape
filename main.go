@@ -25,7 +25,7 @@ var (
 	customDownloadDir = getopt.StringLong("customDownloadDir", 'c', "", "Set a custom directory for the images to download to")
 )
 
-func download(image godesu.Image, finishStateChan chan finishState) {
+func download(image godesu.Image, finishStateChan chan<- finishState) {
 	var filename string
 	if *useOrigFilename {
 		filename = image.OriginalFilename
