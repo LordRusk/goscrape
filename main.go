@@ -95,7 +95,7 @@ func main() {
 		os.Exit(0)
 	}
 	args := getopt.Args()
-	if len(args) == 0 {
+	if len(args) < 1 {
 		getopt.Usage()
 		os.Exit(1)
 	}
