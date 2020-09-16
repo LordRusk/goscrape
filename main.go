@@ -1,27 +1,27 @@
 package main
 
 import (
-	"os"
+	"errors"
 	"io"
 	"log"
-	"errors"
-	"strings"
-	"strconv"
 	"net/http"
+	"os"
+	"strconv"
+	"strings"
 
-	"github.com/pborman/getopt"
 	"github.com/mtarnawa/godesu"
+	"github.com/pborman/getopt"
 )
 
 type finishState struct {
 	filename string
-	err error
+	err      error
 }
 
 var (
 	/* opts */
-	help = getopt.BoolLong("help", 0, "Help")
-	useOrigFilename = getopt.BoolLong("useOrigFilename", 'o', "Download with the original filename")
+	help              = getopt.BoolLong("help", 0, "Help")
+	useOrigFilename   = getopt.BoolLong("useOrigFilename", 'o', "Download with the original filename")
 	customDownloadDir = getopt.StringLong("customDownloadDir", 'c', "", "Set a custom directory for the images to download to")
 )
 
@@ -30,10 +30,10 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 	if *useOrigFilename {
 		filename = image.OriginalFilename
 	} else {
-		filename = (image.Filename+image.Extension)
+		filename = (image.Filename + image.Extension)
 	}
 
-	fs := finishState { filename: filename }
+	fs := finishState{filename: filename}
 
 	if _, err := os.Stat(filename); err == nil {
 		var err strings.Builder
@@ -120,12 +120,12 @@ func main() {
 
 		/* directory stuff */
 		if *customDownloadDir != "" {
-			if err := os.Chdir(*customDownloadDir+"/"); err != nil {
+			if err := os.Chdir(*customDownloadDir + "/"); err != nil {
 				if err := os.MkdirAll(*customDownloadDir+"/", os.ModePerm); err != nil {
 					log.Fatal(errors.New("Error! Cannot create directory! Check permissions"))
 					os.Exit(1)
 				} else {
-					os.Chdir(*customDownloadDir+"/")
+					os.Chdir(*customDownloadDir + "/")
 				}
 			}
 		} else {
@@ -133,7 +133,7 @@ func main() {
 				log.Fatal(errors.New("Error! Cannot create directory! Check permissions"))
 				os.Exit(1)
 			}
-			os.Chdir(purl[3]+"/"+purl[5])
+			os.Chdir(purl[3] + "/" + purl[5])
 		}
 
 		log.Println("Downloading", url, urlNum+1, "of", len(urls))
