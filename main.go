@@ -101,11 +101,11 @@ func main() {
 	}
 	urls := strings.Split(args[0], " ")
 	origDir, _ := os.Getwd()
-	dlc := make(chan finishState)
 	Gochan := godesu.New()
 
 	/* loop through all urls */
 	for urlNum, url := range urls {
+		finishStateChan := make(chan finishState, len(urls))
 		os.Chdir(origDir)
 
 		/* godesu suff */
@@ -140,17 +140,17 @@ func main() {
 
 		/* download all the images */
 		for _, image := range images {
-			go download(image, dlc)
+			go download(image, finishStateChan)
 		}
 
 		for i := 0; i < len(images); i++ {
-			fs := <-dlc
+			fs := <-finishStateChan
 			if fs.err != nil {
 				log.Println(fs.err, i+1, "of", len(images))
 			} else {
 				log.Println("Finished downloading", "'"+fs.filename+"'", i+1, "of", len(images))
 			}
 		}
+		close(finishStateChan)
 	}
-	close(dlc)
 }
