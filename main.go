@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -80,7 +81,7 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 	io.Copy(file, response.Body)
 
 	if err := os.Rename(tmpFilename.String(), filename); err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	}
 
 	fs.err = nil
@@ -105,7 +106,6 @@ func main() {
 
 	/* loop through all urls */
 	for urlNum, url := range urls {
-		finishStateChan := make(chan finishState, len(urls))
 		os.Chdir(origDir)
 
 		/* godesu suff */
@@ -117,6 +117,9 @@ func main() {
 			os.Exit(1)
 		}
 		images := Thread.Images()
+
+		/* make the download chan with proper buffer size */
+		finishStateChan := make(chan finishState, len(images))
 
 		/* directory stuff */
 		if *customDownloadDir != "" {
@@ -136,7 +139,7 @@ func main() {
 			os.Chdir(purl[3] + "/" + purl[5])
 		}
 
-		log.Println("Downloading", url, urlNum+1, "of", len(urls))
+		fmt.Println("Downloading", url, urlNum+1, "of", len(urls))
 
 		/* download all the images */
 		for _, image := range images {
@@ -146,9 +149,9 @@ func main() {
 		for i := 0; i < len(images); i++ {
 			fs := <-finishStateChan
 			if fs.err != nil {
-				log.Println(fs.err, i+1, "of", len(images))
+				fmt.Println(fs.err, i+1, "of", len(images))
 			} else {
-				log.Println("Finished downloading", "'"+fs.filename+"'", i+1, "of", len(images))
+				fmt.Println("Finished downloading", "'"+fs.filename+"'", i+1, "of", len(images))
 			}
 		}
 		close(finishStateChan)
