@@ -106,8 +106,6 @@ func main() {
 
 	/* loop through all urls */
 	for urlNum, url := range urls {
-		os.Chdir(origDir)
-
 		/* godesu suff */
 		purl := strings.Split(url, "/")
 		ThreadNum, _ := strconv.Atoi(purl[5])
@@ -155,5 +153,6 @@ func main() {
 			}
 		}
 		close(finishStateChan)
+		os.Chdir(origDir)
 	}
 }
