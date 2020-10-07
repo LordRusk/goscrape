@@ -49,11 +49,9 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 		return
 	}
 
-	var tmpFilename strings.Builder
-	tmpFilename.WriteString(filename)
-	tmpFilename.WriteString(".part")
+	tmpFilename := filename + ".part"
 
-	file, err := os.Create(tmpFilename.String())
+	file, err := os.Create(tmpFilename)
 	if err != nil {
 		fs.err = errors.New("Error downloading '" + filename + "'")
 		finishStateChan <- fs
@@ -62,7 +60,7 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 
 	io.Copy(file, response.Body)
 
-	if err := os.Rename(tmpFilename.String(), filename); err != nil {
+	if err := os.Rename(tmpFilename, filename); err != nil {
 		fmt.Println(err)
 	}
 
