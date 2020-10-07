@@ -37,26 +37,14 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 	fs := finishState{filename: filename}
 
 	if _, err := os.Stat(filename); err == nil {
-		var err strings.Builder
-		err.WriteString("'")
-		err.WriteString(filename)
-		err.WriteString("'")
-		err.WriteString(" exists! Skipping...")
-
-		fs.err = errors.New(err.String())
+		fs.err = errors.New(string("'" + filename + "' exists! Skipping..."))
 		finishStateChan <- fs
 		return
 	}
 
 	response, err := http.Get(image.URL)
 	if err != nil {
-		var err strings.Builder
-		err.WriteString("Error downloading ")
-		err.WriteString("'")
-		err.WriteString(filename)
-		err.WriteString("'")
-
-		fs.err = errors.New(err.String())
+		fs.err = errors.New("Error downloading '" + filename + "'")
 		finishStateChan <- fs
 		return
 	}
@@ -67,13 +55,7 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 
 	file, err := os.Create(tmpFilename.String())
 	if err != nil {
-		var err strings.Builder
-		err.WriteString("Error downloading ")
-		err.WriteString("'")
-		err.WriteString(filename)
-		err.WriteString("'")
-
-		fs.err = errors.New(err.String())
+		fs.err = errors.New("Error downloading '" + filename + "'")
 		finishStateChan <- fs
 		return
 	}
@@ -84,7 +66,6 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 		fmt.Println(err)
 	}
 
-	fs.err = nil
 	finishStateChan <- fs
 	return
 }
