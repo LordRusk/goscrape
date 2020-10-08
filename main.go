@@ -31,13 +31,13 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 	if *useOrigFilename {
 		filename = image.OriginalFilename
 	} else {
-		filename = (image.Filename + image.Extension)
+		filename = image.Filename + image.Extension
 	}
 
 	fs := finishState{filename: filename}
 
 	if _, err := os.Stat(filename); err == nil {
-		fs.err = errors.New(string("'" + filename + "' exists! Skipping..."))
+		fs.err = errors.New("'" + filename + "' exists! Skipping...")
 		finishStateChan <- fs
 		return
 	}
@@ -85,7 +85,6 @@ func main() {
 
 	/* loop through all urls */
 	for urlNum, url := range urls {
-		/* godesu suff */
 		purl := strings.Split(url, "/")
 		ThreadNum, _ := strconv.Atoi(purl[5])
 		err, Thread := Gochan.Board(purl[3]).GetThread(ThreadNum)
@@ -98,7 +97,6 @@ func main() {
 		/* make the download chan with proper buffer size */
 		finishStateChan := make(chan finishState, len(images))
 
-		/* directory stuff */
 		if *customDownloadDir != "" {
 			if err := os.Chdir(*customDownloadDir + "/"); err != nil {
 				if err := os.MkdirAll(*customDownloadDir+"/", os.ModePerm); err != nil {
@@ -118,7 +116,7 @@ func main() {
 
 		fmt.Println("Downloading", url, urlNum+1, "of", len(urls))
 
-		/* download all the images */
+		/* get the images downloading */
 		for _, image := range images {
 			go download(image, finishStateChan)
 		}
