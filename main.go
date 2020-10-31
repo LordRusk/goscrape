@@ -42,12 +42,13 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 		return
 	}
 
-	response, err := http.Get(image.URL)
+	resp, err := http.Get(image.URL)
 	if err != nil {
 		fs.err = errors.New("Error downloading '" + filename + "'")
 		finishStateChan <- fs
 		return
 	}
+	defer resp.Body.Close()
 
 	tmpFilename := filename + ".part"
 
@@ -58,7 +59,7 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 		return
 	}
 
-	io.Copy(file, response.Body)
+	io.Copy(file, resp.Body)
 
 	if err := os.Rename(tmpFilename, filename); err != nil {
 		fmt.Println(err)
