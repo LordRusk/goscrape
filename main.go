@@ -20,7 +20,7 @@ type finishState struct {
 }
 
 var (
-	/* opts */
+	// opts
 	help              = getopt.BoolLong("help", 0, "Help")
 	useOrigFilename   = getopt.BoolLong("useOrigFilename", 'o', "Download with the original filename")
 	customDownloadDir = getopt.StringLong("customDownloadDir", 'c', "", "Set a custom directory for the images to download to")
@@ -48,7 +48,6 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 		finishStateChan <- fs
 		return
 	}
-	defer resp.Body.Close()
 
 	tmpFilename := filename + ".part"
 
@@ -84,7 +83,7 @@ func main() {
 	origDir, _ := os.Getwd()
 	Gochan := godesu.New()
 
-	/* loop through all urls */
+	// loop through all urls
 	for urlNum, url := range urls {
 		purl := strings.Split(url, "/")
 		ThreadNum, _ := strconv.Atoi(purl[5])
@@ -95,7 +94,7 @@ func main() {
 		}
 		images := Thread.Images()
 
-		/* make the download chan with proper buffer size */
+		// make the download chan with proper buffer size
 		finishStateChan := make(chan finishState, len(images))
 
 		if *customDownloadDir != "" {
@@ -117,7 +116,7 @@ func main() {
 
 		fmt.Println("Downloading", url, urlNum+1, "of", len(urls))
 
-		/* get the images downloading */
+		// get the images downloading
 		for _, image := range images {
 			go download(image, finishStateChan)
 		}
