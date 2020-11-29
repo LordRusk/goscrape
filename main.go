@@ -47,7 +47,12 @@ func download(image godesu.Image, finishStateChan chan<- finishState) {
 		fs.err = errors.New("Error downloading '" + filename + "'")
 		finishStateChan <- fs
 		return
+	} else if resp.StatusCode != http.StatusOK {
+		fs.err = fmt.Errorf("Http status code is %s", resp.StatusCode)
+		finishStateChan <- fs
+		return
 	}
+	defer resp.Body.Close()
 
 	tmpFilename := filename + ".part"
 

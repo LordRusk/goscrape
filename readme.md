@@ -2,7 +2,7 @@
 Goscrape is a very simple and efficient 4chan media scraper written in go that supports multiple treads, custom download directories, and more!
 
 ## How to install
-`go get -u github.com/lordrusk/goscrape`
+`go get github.com/lordrusk/goscrape`
 
 ## How to use
 You can simply run goscrape with a link to a thread and it'll download all the images. For multiple links, put in quotes. Add the `-o` option to download with original filenames, and use `-c` to set a custom directory.
