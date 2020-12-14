@@ -1,10 +1,8 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -25,53 +23,6 @@ var (
 	useOrigFilename   = getopt.BoolLong("useOrigFilename", 'o', "Download with the original filename")
 	customDownloadDir = getopt.StringLong("customDownloadDir", 'c', "", "Set a custom directory for the images to download to")
 )
-
-func download(image godesu.Image, finishStateChan chan<- finishState) {
-	var filename string
-	if *useOrigFilename {
-		filename = image.OriginalFilename
-	} else {
-		filename = image.Filename + image.Extension
-	}
-
-	fs := finishState{filename: filename}
-
-	if _, err := os.Stat(filename); err == nil {
-		fs.err = errors.New("'" + filename + "' exists! Skipping...")
-		finishStateChan <- fs
-		return
-	}
-
-	resp, err := http.Get(image.URL)
-	if err != nil {
-		fs.err = errors.New("Error downloading '" + filename + "'")
-		finishStateChan <- fs
-		return
-	} else if resp.StatusCode != http.StatusOK {
-		fs.err = fmt.Errorf("Http status code is %s", resp.StatusCode)
-		finishStateChan <- fs
-		return
-	}
-	defer resp.Body.Close()
-
-	tmpFilename := filename + ".part"
-
-	file, err := os.Create(tmpFilename)
-	if err != nil {
-		fs.err = errors.New("Error downloading '" + filename + "'")
-		finishStateChan <- fs
-		return
-	}
-
-	io.Copy(file, resp.Body)
-
-	if err := os.Rename(tmpFilename, filename); err != nil {
-		fmt.Println(err)
-	}
-
-	finishStateChan <- fs
-	return
-}
 
 func main() {
 	getopt.Parse()
@@ -94,27 +45,27 @@ func main() {
 		ThreadNum, _ := strconv.Atoi(purl[5])
 		err, Thread := Gochan.Board(purl[3]).GetThread(ThreadNum)
 		if err != nil {
-			log.Fatal(errors.New("Error! Could not fetch Thread!"))
-			os.Exit(1)
+			fmt.Printf("Could not fetch thread! | %v\n", err)
+			return
 		}
 		images := Thread.Images()
 
-		// make the download chan with proper buffer size
+		// make the download channel with proper buffer size
 		finishStateChan := make(chan finishState, len(images))
 
 		if *customDownloadDir != "" {
 			if err := os.Chdir(*customDownloadDir + "/"); err != nil {
 				if err := os.MkdirAll(*customDownloadDir+"/", os.ModePerm); err != nil {
-					log.Fatal(errors.New("Error! Cannot create directory! Check permissions"))
-					os.Exit(1)
+					fmt.Printf("Cannot create directory! | %v\n", err)
+					return
 				} else {
 					os.Chdir(*customDownloadDir + "/")
 				}
 			}
 		} else {
 			if err := os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm); err != nil {
-				log.Fatal(errors.New("Error! Cannot create directory! Check permissions"))
-				os.Exit(1)
+				fmt.Printf("Cannot create directory! | %v\n", err)
+				return
 			}
 			os.Chdir(purl[3] + "/" + purl[5])
 		}
@@ -123,15 +74,60 @@ func main() {
 
 		// get the images downloading
 		for _, image := range images {
-			go download(image, finishStateChan)
+			go func(image godesu.Image) {
+				var filename string
+				if *useOrigFilename {
+					filename = image.OriginalFilename
+				} else {
+					filename = image.Filename + image.Extension
+				}
+
+				fs := finishState{filename: filename}
+
+				if _, err := os.Stat(filename); err == nil {
+					fs.err = fmt.Errorf("'%v' exists! Skipping...", filename)
+					finishStateChan <- fs
+					return
+				}
+
+				resp, err := http.Get(image.URL)
+				if err != nil {
+					fs.err = fmt.Errorf("Error downloading '%v'! | %v", image.URL, err)
+					finishStateChan <- fs
+					return
+				} else if resp.StatusCode != http.StatusOK {
+					fs.err = fmt.Errorf("Error downloading '%v'! Http status not ok: %v", image.URL, resp.StatusCode)
+					finishStateChan <- fs
+					return
+				}
+				defer resp.Body.Close()
+
+				tmpFilename := filename + ".part"
+
+				file, err := os.Create(tmpFilename)
+				if err != nil {
+					fs.err = fmt.Errorf("Cannot create '%v'! | %v", filename, err)
+					finishStateChan <- fs
+					return
+				}
+
+				io.Copy(file, resp.Body)
+
+				if err := os.Rename(tmpFilename, filename); err != nil {
+					fs.err = fmt.Errorf("Unable to rename '%v' to '%v'! | %v", tmpFilename, filename, err)
+				}
+
+				finishStateChan <- fs
+				return
+			}(image)
 		}
 
 		for i := 0; i < len(images); i++ {
 			fs := <-finishStateChan
 			if fs.err != nil {
-				fmt.Println(fs.err, i+1, "of", len(images))
+				fmt.Printf("%v | %v of %v\n", fs.err, i+1, len(images))
 			} else {
-				fmt.Println("Finished downloading", "'"+fs.filename+"'", i+1, "of", len(images))
+				fmt.Printf("Finished downloading '%v' | %v of %v\n", fs.filename, i+1, len(images))
 			}
 		}
 		close(finishStateChan)
