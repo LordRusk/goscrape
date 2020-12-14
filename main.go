@@ -130,6 +130,7 @@ func main() {
 				fmt.Printf("Finished downloading '%v' | %v of %v\n", fs.filename, i+1, len(images))
 			}
 		}
+
 		close(finishStateChan)
 		os.Chdir(origDir)
 	}
