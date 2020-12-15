@@ -28,12 +28,12 @@ func main() {
 	getopt.Parse()
 	if *help {
 		getopt.Usage()
-		os.Exit(0)
+		return
 	}
 	args := getopt.Args()
 	if len(args) < 1 {
 		getopt.Usage()
-		os.Exit(1)
+		return
 	}
 	urls := strings.Split(args[0], " ")
 	origDir, _ := os.Getwd()
