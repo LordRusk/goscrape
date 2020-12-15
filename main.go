@@ -70,7 +70,7 @@ func main() {
 			os.Chdir(purl[3] + "/" + purl[5])
 		}
 
-		fmt.Println("Downloading", url, urlNum+1, "of", len(urls))
+		fmt.Printf("Downloading '%v' | %v of %v\n", url, urlNum+1, len(urls))
 
 		// get the images downloading
 		for _, image := range images {
