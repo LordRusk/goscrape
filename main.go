@@ -19,7 +19,7 @@ type finishState struct {
 
 var (
 	// opts
-	help              = getopt.BoolLong("help", 0, "Help")
+	help              = getopt.BoolLong("help", 'h', "Help")
 	useOrigFilename   = getopt.BoolLong("useOrigFilename", 'o', "Download with the original filename")
 	customDownloadDir = getopt.StringLong("customDownloadDir", 'c', "", "Set a custom directory for the images to download to")
 )
