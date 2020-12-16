@@ -30,11 +30,13 @@ func main() {
 		getopt.Usage()
 		return
 	}
+	
 	args := getopt.Args()
 	if len(args) < 1 {
 		getopt.Usage()
 		return
 	}
+	
 	urls := strings.Split(args[0], " ")
 	origDir, _ := os.Getwd()
 	Gochan := godesu.New()
@@ -48,10 +50,9 @@ func main() {
 			fmt.Printf("Could not fetch thread! | %v\n", err)
 			return
 		}
+		
 		images := Thread.Images()
-
-		// make the download channel with proper buffer size
-		finishStateChan := make(chan finishState, len(images))
+		finishStateChan := make(chan finishState, len(images)) // make the download channel with proper buffer size
 
 		if *customDownloadDir != "" {
 			if err := os.Chdir(*customDownloadDir + "/"); err != nil {
