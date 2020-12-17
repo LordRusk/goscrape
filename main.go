@@ -44,7 +44,12 @@ func main() {
 	// loop through all urls
 	for urlNum, url := range urls {
 		purl := strings.Split(url, "/")
-		ThreadNum, _ := strconv.Atoi(purl[5])
+		ThreadNum, err := strconv.Atoi(purl[5])
+		if err != nil {
+			fmt.Printf("Could not convert thread number to int! Make sure the URL is correct. | %v\n", err)
+			return
+		}
+		
 		err, Thread := Gochan.Board(purl[3]).GetThread(ThreadNum)
 		if err != nil {
 			fmt.Printf("Could not fetch thread! | %v\n", err)
@@ -82,7 +87,6 @@ func main() {
 				} else {
 					filename = image.Filename + image.Extension
 				}
-
 				fs := finishState{filename: filename}
 
 				if _, err := os.Stat(filename); err == nil {
@@ -107,7 +111,7 @@ func main() {
 
 				file, err := os.Create(tmpFilename)
 				if err != nil {
-					fs.err = fmt.Errorf("Cannot create '%v'! | %v", filename, err)
+					fs.err = fmt.Errorf("Cannot create '%v'! | %v", tmpFilename, err)
 					finishStateChan <- fs
 					return
 				}
