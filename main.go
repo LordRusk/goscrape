@@ -30,39 +30,38 @@ func main() {
 		getopt.Usage()
 		return
 	}
-	
+
 	args := getopt.Args()
 	if len(args) < 1 {
 		getopt.Usage()
 		return
 	}
-	
+
 	urls := strings.Split(args[0], " ")
 	origDir, _ := os.Getwd()
 	Gochan := godesu.New()
 
-	// loop through all urls
-	for urlNum, url := range urls {
+	for urlNum, url := range urls { // loop through all urls
 		purl := strings.Split(url, "/")
 		ThreadNum, err := strconv.Atoi(purl[5])
 		if err != nil {
-			fmt.Printf("Could not convert thread number to int! Make sure the URL is correct. | %v\n", err)
+			fmt.Printf("Could not convert thread number to int! Make sure the URL is correct. %v\n", err)
 			return
 		}
-		
+
 		err, Thread := Gochan.Board(purl[3]).GetThread(ThreadNum)
 		if err != nil {
-			fmt.Printf("Could not fetch thread! | %v\n", err)
+			fmt.Printf("Could not fetch thread! %v\n", err)
 			return
 		}
-		
+
 		images := Thread.Images()
 		finishStateChan := make(chan finishState, len(images)) // make the download channel with proper buffer size
 
 		if *customDownloadDir != "" {
 			if err := os.Chdir(*customDownloadDir + "/"); err != nil {
 				if err := os.MkdirAll(*customDownloadDir+"/", os.ModePerm); err != nil {
-					fmt.Printf("Cannot create directory! | %v\n", err)
+					fmt.Printf("Cannot create directory! %v\n", err)
 					return
 				} else {
 					os.Chdir(*customDownloadDir + "/")
@@ -70,56 +69,54 @@ func main() {
 			}
 		} else {
 			if err := os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm); err != nil {
-				fmt.Printf("Cannot create directory! | %v\n", err)
+				fmt.Printf("Cannot create directory! %v\n", err)
 				return
 			}
 			os.Chdir(purl[3] + "/" + purl[5])
 		}
 
-		fmt.Printf("Downloading '%v' | %v of %v\n", url, urlNum+1, len(urls))
+		fmt.Printf("Downloading '%v' %v of %v\n", url, urlNum+1, len(urls))
 
-		// get the images downloading
-		for _, image := range images {
+		for _, image := range images { // get the images downloading
 			go func(image godesu.Image) {
-				var filename string
+				var fs finishState
 				if *useOrigFilename {
-					filename = image.OriginalFilename
+					fs.filename = image.OriginalFilename
 				} else {
-					filename = image.Filename + image.Extension
+					fs.filename = image.Filename + image.Extension
 				}
-				fs := finishState{filename: filename}
 
-				if _, err := os.Stat(filename); err == nil {
-					fs.err = fmt.Errorf("'%v' exists! Skipping...", filename)
+				if _, err := os.Stat(fs.filename); err == nil {
+					fs.err = fmt.Errorf("'%v' exists! Skipping...", fs.filename)
 					finishStateChan <- fs
 					return
 				}
 
 				resp, err := http.Get(image.URL)
 				if err != nil {
-					fs.err = fmt.Errorf("Error downloading '%v'! | %v", image.URL, err)
+					fs.err = fmt.Errorf("Error downloading '%v'! %v", image.URL, err)
 					finishStateChan <- fs
 					return
 				} else if resp.StatusCode != http.StatusOK {
-					fs.err = fmt.Errorf("Error downloading '%v'! Http status not ok: %v", image.URL, resp.StatusCode)
+					fs.err = fmt.Errorf("Error downloading '%v'! Http status not ok: %s", image.URL, resp.StatusCode)
 					finishStateChan <- fs
 					return
 				}
 				defer resp.Body.Close()
 
-				tmpFilename := filename + ".part"
+				tmpFilename := fs.filename + ".part"
 
 				file, err := os.Create(tmpFilename)
 				if err != nil {
-					fs.err = fmt.Errorf("Cannot create '%v'! | %v", tmpFilename, err)
+					fs.err = fmt.Errorf("Cannot create '%v'! %v", tmpFilename, err)
 					finishStateChan <- fs
 					return
 				}
 
 				io.Copy(file, resp.Body)
 
-				if err := os.Rename(tmpFilename, filename); err != nil {
-					fs.err = fmt.Errorf("Unable to rename '%v' to '%v'! | %v", tmpFilename, filename, err)
+				if err := os.Rename(tmpFilename, fs.filename); err != nil {
+					fs.err = fmt.Errorf("Unable to rename '%v' to '%v'! %v", tmpFilename, fs.filename, err)
 				}
 
 				finishStateChan <- fs
@@ -127,12 +124,12 @@ func main() {
 			}(image)
 		}
 
-		for i := 0; i < len(images); i++ {
+		for i := 0; i < len(images); i++ { // watch for images to finish
 			fs := <-finishStateChan
 			if fs.err != nil {
-				fmt.Printf("%v | %v of %v\n", fs.err, i+1, len(images))
+				fmt.Printf("%v %v of %v\n", fs.err, i+1, len(images))
 			} else {
-				fmt.Printf("Finished downloading '%v' | %v of %v\n", fs.filename, i+1, len(images))
+				fmt.Printf("Finished downloading '%v' %v of %v\n", fs.filename, i+1, len(images))
 			}
 		}
 
