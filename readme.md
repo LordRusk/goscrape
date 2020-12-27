@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/lordrusk/goscrape)](https://goreportcard.com/report/github.com/lordrusk/goscrape)
+
 # Simple and efficient 4chan media scraper written in GO
 Goscrape is a very simple and efficient 4chan media scraper written in go that supports multiple treads, custom download directories, and more!
 

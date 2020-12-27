@@ -17,8 +17,7 @@ type finishState struct {
 	err      error
 }
 
-var (
-	// opts
+var ( // opts
 	help              = getopt.BoolLong("help", 'h', "Help")
 	useOrigFilename   = getopt.BoolLong("useOrigFilename", 'o', "Download with the original filename")
 	customDownloadDir = getopt.StringLong("customDownloadDir", 'c', "", "Set a custom directory for the images to download to")
@@ -45,13 +44,13 @@ func main() {
 		purl := strings.Split(url, "/")
 		ThreadNum, err := strconv.Atoi(purl[5])
 		if err != nil {
-			fmt.Printf("Could not convert thread number to int! Make sure the URL is correct. %v\n", err)
+			fmt.Printf("Could not convert thread number to int! Make sure the URL is correct. |  %v\n", err)
 			return
 		}
 
 		err, Thread := Gochan.Board(purl[3]).GetThread(ThreadNum)
 		if err != nil {
-			fmt.Printf("Could not fetch thread! %v\n", err)
+			fmt.Printf("Could not fetch thread! |  %v\n", err)
 			return
 		}
 
@@ -63,9 +62,9 @@ func main() {
 				if err := os.MkdirAll(*customDownloadDir+"/", os.ModePerm); err != nil {
 					fmt.Printf("Cannot create directory! %v\n", err)
 					return
-				} else {
-					os.Chdir(*customDownloadDir + "/")
 				}
+
+				os.Chdir(*customDownloadDir + "/")
 			}
 		} else {
 			if err := os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm); err != nil {
