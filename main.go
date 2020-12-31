@@ -71,6 +71,7 @@ func main() {
 				fmt.Printf("Cannot create directory! %v\n", err)
 				return
 			}
+			
 			os.Chdir(purl[3] + "/" + purl[5])
 		}
 
@@ -127,9 +128,10 @@ func main() {
 			fs := <-finishStateChan
 			if fs.err != nil {
 				fmt.Printf("%v %v of %v\n", fs.err, i+1, len(images))
-			} else {
-				fmt.Printf("Finished downloading '%v' %v of %v\n", fs.filename, i+1, len(images))
+				return
 			}
+
+			fmt.Printf("Finished downloading '%v' %v of %v\n", fs.filename, i+1, len(images))
 		}
 
 		close(finishStateChan)
