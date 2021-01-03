@@ -128,10 +128,9 @@ func main() {
 			fs := <-finishStateChan
 			if fs.err != nil {
 				fmt.Printf("%v %v of %v\n", fs.err, i+1, len(images))
-				return
+			} else {
+				fmt.Printf("Finished downloading '%v' %v of %v\n", fs.filename, i+1, len(images))
 			}
-
-			fmt.Printf("Finished downloading '%v' %v of %v\n", fs.filename, i+1, len(images))
 		}
 
 		close(finishStateChan)
