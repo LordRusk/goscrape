@@ -102,7 +102,7 @@ func main() {
 					finishStateChan <- fs
 					return
 				} else if resp.StatusCode != http.StatusOK {
-					fs.err = fmt.Errorf("Error downloading '%v'! Http status not ok: %s", image.URL, resp.StatusCode)
+					fs.err = fmt.Errorf("Error downloading '%v'! Http status not ok: %d", image.URL, resp.StatusCode)
 					finishStateChan <- fs
 					return
 				}
