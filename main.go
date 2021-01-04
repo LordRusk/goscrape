@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/mtarnawa/godesu"
-	"github.com/pborman/getopt"
 )
 
 type finishState struct {
@@ -18,26 +18,30 @@ type finishState struct {
 }
 
 var ( // opts
-	help              = getopt.BoolLong("help", 'h', "Help")
-	useOrigFilename   = getopt.BoolLong("useOrigFilename", 'o', "Download with the original filename")
-	customDownloadDir = getopt.StringLong("customDownloadDir", 'c', "", "Set a custom directory for the images to download to")
+	help              = flag.Bool("h", false, "Show help menu")
+	useOrigFilename   = flag.Bool("o", false, "Download with the original filename")
+	customDownloadDir = flag.String("c", "", "Set a custom directory for the images to download to")
 )
 
 func main() {
-	getopt.Parse()
+	flag.Parse()
 	if *help {
-		getopt.Usage()
+		flag.Usage()
 		return
 	}
 
-	args := getopt.Args()
+	args := flag.Args()
 	if len(args) < 1 {
-		getopt.Usage()
+		flag.Usage()
 		return
 	}
 
 	urls := strings.Split(args[0], " ")
-	origDir, _ := os.Getwd()
+	origDir, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Could not grab working directory! | %v\n", err)
+		return
+	}
 	Gochan := godesu.New()
 
 	for urlNum, url := range urls { // loop through all urls
@@ -71,7 +75,7 @@ func main() {
 				fmt.Printf("Cannot create directory! %v\n", err)
 				return
 			}
-			
+
 			os.Chdir(purl[3] + "/" + purl[5])
 		}
 
