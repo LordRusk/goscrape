@@ -62,14 +62,12 @@ func main() {
 		finishStateChan := make(chan finishState, len(images)) // make the download channel with proper buffer size
 
 		if *customDownloadDir != "" {
-			if err := os.Chdir(*customDownloadDir + "/"); err != nil {
-				if err := os.MkdirAll(*customDownloadDir+"/", os.ModePerm); err != nil {
-					fmt.Printf("Cannot create directory! %v\n", err)
-					return
-				}
-
-				os.Chdir(*customDownloadDir + "/")
+			if err := os.MkdirAll(*customDownloadDir+"/", os.ModePerm); err != nil {
+				fmt.Printf("Cannot create directory! %v\n", err)
+				return
 			}
+
+			os.Chdir(*customDownloadDir + "/")
 		} else {
 			if err := os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm); err != nil {
 				fmt.Printf("Cannot create directory! %v\n", err)
