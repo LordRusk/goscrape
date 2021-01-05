@@ -48,7 +48,7 @@ func main() {
 		purl := strings.Split(url, "/")
 		ThreadNum, err := strconv.Atoi(purl[5])
 		if err != nil {
-			fmt.Printf("Could not convert thread number to int! Make sure the URL is correct. |  %v\n", err)
+			fmt.Printf("Make sure the URL is correct! | %v\n", err)
 			return
 		}
 
@@ -62,16 +62,20 @@ func main() {
 		finishStateChan := make(chan finishState, len(images)) // make the download channel with proper buffer size
 
 		if *customDownloadDir != "" {
-			if err := os.MkdirAll(*customDownloadDir+"/", os.ModePerm); err != nil {
-				fmt.Printf("Cannot create directory! %v\n", err)
-				return
+			if err := os.Chdir(*customDownloadDir + "/"); err != nil {
+				if err := os.MkdirAll(*customDownloadDir+"/", os.ModePerm); err != nil {
+					fmt.Printf("Cannot create directory! %v\n", err)
+					return
+				}
 			}
 
 			os.Chdir(*customDownloadDir + "/")
 		} else {
-			if err := os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm); err != nil {
-				fmt.Printf("Cannot create directory! %v\n", err)
-				return
+			if err := os.Chdir(purl[3] + "/" + purl[5]); err != nil {
+				if err := os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm); err != nil {
+					fmt.Printf("Cannot create directory! %v\n", err)
+					return
+				}
 			}
 
 			os.Chdir(purl[3] + "/" + purl[5])
