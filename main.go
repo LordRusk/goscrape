@@ -42,7 +42,7 @@ func main() {
 		fmt.Printf("Could not grab working directory! | %v\n", err)
 		return
 	}
-	Gochan := godesu.New()
+	Gochan := godesu.New() // intialize godesu
 
 	for urlNum, url := range urls { // loop through all urls
 		purl := strings.Split(url, "/")
@@ -67,18 +67,18 @@ func main() {
 					fmt.Printf("Cannot create directory! %v\n", err)
 					return
 				}
-			}
 
-			os.Chdir(*customDownloadDir + "/")
+				os.Chdir(*customDownloadDir + "/")
+			}
 		} else {
 			if err := os.Chdir(purl[3] + "/" + purl[5]); err != nil {
 				if err := os.MkdirAll(purl[3]+"/"+purl[5], os.ModePerm); err != nil {
 					fmt.Printf("Cannot create directory! %v\n", err)
 					return
 				}
-			}
 
-			os.Chdir(purl[3] + "/" + purl[5])
+				os.Chdir(purl[3] + "/" + purl[5])
+			}
 		}
 
 		fmt.Printf("Downloading '%v' %v of %v\n", url, urlNum+1, len(urls))
@@ -118,6 +118,7 @@ func main() {
 					finishStateChan <- fs
 					return
 				}
+				defer file.Close()
 
 				io.Copy(file, resp.Body)
 
