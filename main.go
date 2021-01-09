@@ -82,7 +82,6 @@ func main() {
 		}
 
 		fmt.Printf("Downloading '%v' %v of %v\n", url, urlNum+1, len(urls))
-
 		for _, image := range images { // get the images downloading
 			go func(image godesu.Image) {
 				var fs finishState
