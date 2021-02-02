@@ -113,7 +113,7 @@ func main() {
 
 				file, err := os.Create(tmpFilename)
 				if err != nil {
-					fs.err = fmt.Errorf("Cannot create '%s'! %s", tmpFilename, err)
+					fs.err = fmt.Errorf("Cannot create '%s': %s", tmpFilename, err)
 					finishStateChan <- fs
 					return
 				}
@@ -122,7 +122,7 @@ func main() {
 				io.Copy(file, resp.Body)
 
 				if err := os.Rename(tmpFilename, fs.filename); err != nil {
-					fs.err = fmt.Errorf("Unable to rename '%s' to '%s'! %s", tmpFilename, fs.filename, err)
+					fs.err = fmt.Errorf("Unable to rename '%s' to '%s': %s", tmpFilename, fs.filename, err)
 				}
 
 				finishStateChan <- fs
