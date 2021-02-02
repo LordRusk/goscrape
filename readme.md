@@ -6,7 +6,7 @@ Goscrape is a very simple and efficient 4chan media scraper written in go that s
 ## How to install
 `go get github.com/lordrusk/goscrape`
 
-Binaries included in each release. Latest release found [here.](https://github.com/LordRusk/goscrape/releases/tag/v1.3.2)
+Binaries included in each release. Latest release found [here.](https://github.com/LordRusk/goscrape/releases/tag/v1.3.3)
 
 ## How to use
 `-h` for help menu.
